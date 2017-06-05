@@ -18,3 +18,7 @@ for i in range(100):
     print pm.fps_sample(), pm.cpu_sample(), pm.mem_sample(), pm.net_sample()
     time.sleep(1)
 ```
+1. Plug in your device
+2. Set pkg name(essential) and device id(option)
+3. Open your app
+4. Start python process
