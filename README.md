@@ -22,4 +22,4 @@ for i in range(100):
 1. Plug in your phone, enable USB Debug.
 2. Instantialize a PerfManager using your app's package name(essential) and device id(option)
 3. Open your app in your phone
-4. ```python main.py```
+4. Run ```python main.py``` in command line to start collecting data
