@@ -6,6 +6,7 @@
   * Memory(in KB)
   * Network(in Byte/s)
 * Need and only for Android 5.0
+* Tested in Python 2.7, Xiaomi MIX and Huawei P9
 * No need for __ROOT__ privilige
 ## Usage
 ```python
