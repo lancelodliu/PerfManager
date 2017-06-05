@@ -1,4 +1,4 @@
-# perf_recorder
+# PerfManager
 ## Description
 * ADB tool to collect performance of mobile game:
   * FPS
