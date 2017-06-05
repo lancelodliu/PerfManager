@@ -173,8 +173,10 @@ class PerfManager(object):
 
 
 if __name__ == '__main__':
+    # None works when there is only one device plugged in your computer
     device = None
-    pkg = "com.tencent.tmgp.zlong"
+    # set to your pkg name
+    pkg = "com.group.pkg.name"
     pm = PerfManager(device, pkg)
     for i in range(100):
         print pm.fps_sample(), pm.cpu_sample(), pm.mem_sample(), pm.net_sample()
