@@ -33,6 +33,7 @@ class PerfManager(object):
         self.__uid = get_uid(_device, package)
         self.__device = _device
         self.__package = package
+        self.__layername = None
         self.__time_total_last = 0
         self.__time_user_last = 0
         self.__time_kernel_last = 0
@@ -103,13 +104,7 @@ class PerfManager(object):
         self.__time_kernel_last = time_kernel_now
         return self.__cpu_last
 
-    def fps_sample(self):
-        _p = None
-        if self.__device:
-            _p = subprocess.Popen("adb -s {} shell dumpsys SurfaceFlinger --latency SurfaceView".format(self.__device), stdout=subprocess.PIPE)
-        else:
-            _p = subprocess.Popen("adb shell dumpsys SurfaceFlinger --latency SurfaceView", stdout=subprocess.PIPE)
-        results = _p.stdout.readlines()
+        def __calculate_fps_surfaceview(self, results):
         # timestamp in sec
         timestamps = []
         nanoseconds_per_second = 1e9
@@ -119,14 +114,66 @@ class PerfManager(object):
             if len(fields) != 3:
                 continue
             timestamp = long(fields[1])
-            if timestamp == pending_fence_timestamp:
+            if timestamp == pending_fence_timestamp or timestamp == 0:
                 continue
             timestamp /= nanoseconds_per_second
             timestamps.append(timestamp)
         # no valid data
         if len(timestamps) < 2:
-            return -1
-        return (len(timestamps) - 1) / (timestamps[-1]-timestamps[0])
+            return 0
+        return (len(timestamps) - 1) / (timestamps[-1] - timestamps[0])
+
+    def __fps_sample_6_or_lower(self):
+        _p = None
+        if self.__device:
+            _p = subprocess.Popen("adb -s {} shell dumpsys SurfaceFlinger --latency SurfaceView".format(self.__device),
+                                  stdout=subprocess.PIPE)
+        else:
+            _p = subprocess.Popen("adb shell dumpsys SurfaceFlinger --latency SurfaceView", stdout=subprocess.PIPE)
+        results = _p.stdout.readlines()
+        return self.__calculate_fps_surfaceview(results)
+
+
+    def __get_layername(self):
+        if self.__device:
+            _p = subprocess.Popen("adb -s {} shell dumpsys SurfaceFlinger | grep {}".format(self.__device, self.__package),
+                                  stdout=subprocess.PIPE)
+        else:
+            _p = subprocess.Popen("adb shell dumpsys SurfaceFlinger | grep {}".format(self.__package), stdout=subprocess.PIPE)
+        results = _p.stdout.readlines()
+        results = filter(lambda x: x.startswith('0x'), results)
+        results = [x.split('|')[-1].strip() for x in results]
+        results = set(results)
+        bestresults = filter(lambda x: 'SurfaceView' in x, results)
+        if len(bestresults) > 0:
+            return bestresults.pop()
+        else:
+            return results.pop()
+
+
+    def __fps_sample_7_or_higher(self):
+        # from GAutomator.sgtesttool.collect import collect
+        # result = collect('PerfCollect', 'PerfInfo')
+        # return result['Fps']
+        # 7.0及以上的需要先获取SurfaceView的layername 一般都包含packagename
+        # 如果有SurfaceView开头的 优先用这个
+        _p = None
+        if self.__layername is None:
+            self.__layername = self.__get_layername()
+        if self.__device:
+            _p = subprocess.Popen("adb -s {} shell dumpsys SurfaceFlinger --latency '{}'".format(self.__device, self.__layername),
+                                  stdout=subprocess.PIPE)
+        else:
+            _p = subprocess.Popen("adb shell dumpsys SurfaceFlinger --latency '{}'".format(self.__layername), stdout=subprocess.PIPE)
+        results = _p.stdout.readlines()
+        return self.__calculate_fps_surfaceview(results)
+
+
+    def fps_sample(self):
+        if self.__version.startswith('Android OS 7.'):
+            return self.__fps_sample_7_or_higher()
+        else:
+            return self.__fps_sample_6_or_lower()
 
     def net_sample(self):
         if self.__device:
