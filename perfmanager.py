@@ -20,7 +20,6 @@ def get_pid(_device, package):
 # find process UID
 def get_uid(_device, package):
     adb_str = "adb -s {} shell dumpsys package | grep {} -A 3 | grep userId".format(_device, package) if _device else "adb shell dumpsys package| grep {} -B 1 -A 1 | grep userId".format(package)
-
     proc = subprocess.Popen(adb_str, stdout=subprocess.PIPE)
     _t = proc.stdout.read()
     uid = _t.split('=')[1].split()[0]
@@ -45,6 +44,7 @@ class PerfManager(object):
         self.__recv_udp = 0
         self.__send_udp = 0
 
+        
     def mem_sample(self):
         result = {'NativeHeap': -1, 'DalvikHeap': -1, 'PssTotal': -1}
         if self.__package is None:
@@ -67,6 +67,7 @@ class PerfManager(object):
                 result['PssTotal'] = memory
         return result
 
+    
     def cpu_sample(self):
         if self.__package is None:
             return -1
@@ -104,7 +105,8 @@ class PerfManager(object):
         self.__time_kernel_last = time_kernel_now
         return self.__cpu_last
 
-        def __calculate_fps_surfaceview(self, results):
+    
+    def __calculate_fps_surfaceview(self, results):
         # timestamp in sec
         timestamps = []
         nanoseconds_per_second = 1e9
@@ -123,6 +125,7 @@ class PerfManager(object):
             return 0
         return (len(timestamps) - 1) / (timestamps[-1] - timestamps[0])
 
+    
     def __fps_sample_6_or_lower(self):
         _p = None
         if self.__device:
