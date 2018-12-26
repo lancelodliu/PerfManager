@@ -1,6 +1,6 @@
 # PerfManager
 ## Description
-* ADB tool to collect performance of mobile game:
+* ADB tool to collect performance of mobile app:
   * FPS
   * CPU(in percentage)
   * Memory(in KB)
